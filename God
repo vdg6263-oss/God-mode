@@ -1,0 +1,273 @@
+-- ⚡ VD GOD PANEL v3 (FULL WORKING 2025)
+-- Made by VD Group 💀🔥
+
+if game:GetService("RunService"):IsServer() then return end
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Delete old GUI
+local old = playerGui:FindFirstChild("VDGroupAdmin")
+if old then old:Destroy() end
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "VDGroupAdmin"
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+-- Circle (Main Button)
+local circle = Instance.new("TextButton")
+circle.Size = UDim2.new(0, 75, 0, 75)
+circle.Position = UDim2.new(0.15, 0, 0.75, 0)
+circle.AnchorPoint = Vector2.new(0.5, 0.5)
+circle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+circle.Text = "VD"
+circle.TextColor3 = Color3.new(1, 1, 1)
+circle.Font = Enum.Font.GothamBold
+circle.TextSize = 22
+circle.AutoButtonColor = false
+circle.Parent = gui
+Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+
+-- Rainbow effect
+task.spawn(function()
+	while task.wait(0.02) do
+		local t = tick() % 5 / 5
+		circle.BackgroundColor3 = Color3.fromHSV(t, 1, 1)
+	end
+end)
+
+-- Fast drag (Mobile + PC)
+local dragging = false
+local dragStart, startPos
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	circle.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X * 3, startPos.Y.Scale, startPos.Y.Offset + delta.Y * 3)
+end
+circle.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = circle.Position
+	end
+end)
+circle.InputEnded:Connect(function() dragging = false end)
+UIS.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+		updateDrag(input)
+	end
+end)
+
+-- Menu Frame
+local menu = Instance.new("Frame")
+menu.Size = UDim2.new(0, 320, 0, 460)
+menu.Position = UDim2.new(0.5, -160, 0.5, -230)
+menu.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+menu.Visible = false
+menu.Parent = gui
+Instance.new("UICorner", menu).CornerRadius = UDim.new(0.1, 0)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "⚡ VD GOD PANEL ⚡"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.Parent = menu
+
+-- Close button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.new(1, 0.3, 0.3)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+closeBtn.TextSize = 20
+closeBtn.Parent = menu
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
+closeBtn.MouseButton1Click:Connect(function()
+	menu.Visible = false
+end)
+
+-- Toggle open/close
+circle.MouseButton1Click:Connect(function()
+	menu.Visible = not menu.Visible
+end)
+
+-- Scroll area
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -10, 1, -45)
+scroll.Position = UDim2.new(0, 5, 0, 40)
+scroll.BackgroundTransparency = 1
+scroll.ScrollBarThickness = 6
+scroll.Parent = menu
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0, 6)
+list.Parent = scroll
+
+-- Helpers
+local function getHumanoid()
+	return player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+end
+local function getHRP()
+	return player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+end
+
+-- Create buttons
+local function makeButton(name, color, func)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, -10, 0, 36)
+	b.BackgroundColor3 = color or Color3.fromRGB(70, 120, 255)
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 16
+	b.Text = name
+	b.Parent = scroll
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0.3, 0)
+	b.MouseButton1Click:Connect(func)
+end
+
+-------------------------------------------------
+-- Commands
+-------------------------------------------------
+
+makeButton("💀 Kill", Color3.fromRGB(255, 70, 70), function()
+	local h = getHumanoid(); if h then h.Health = 0 end
+end)
+
+makeButton("❤️ Heal", Color3.fromRGB(70, 200, 70), function()
+	local h = getHumanoid(); if h then h.Health = h.MaxHealth end
+end)
+
+-- Fly system
+local flying = false
+makeButton("🚀 Fly / Unfly", Color3.fromRGB(255, 200, 70), function()
+	local hrp = getHRP(); if not hrp then return end
+	if flying then
+		flying = false
+		if hrp:FindFirstChild("VDGyro") then hrp.VDGyro:Destroy() end
+		if hrp:FindFirstChild("VDVel") then hrp.VDVel:Destroy() end
+	else
+		flying = true
+		local gyro = Instance.new("BodyGyro", hrp)
+		gyro.Name = "VDGyro"
+		gyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+		local vel = Instance.new("BodyVelocity", hrp)
+		vel.Name = "VDVel"
+		vel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+		task.spawn(function()
+			while flying and hrp.Parent do
+				task.wait()
+				local cam = workspace.CurrentCamera
+				local dir = Vector3.zero
+				if UIS:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
+				if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
+				if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
+				if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
+				vel.Velocity = dir * 90
+				gyro.CFrame = cam.CFrame
+			end
+		end)
+	end
+end)
+
+-- Adjustable speed system
+local speed = 16
+local speedLabel
+speedLabel = makeButton("⚡ Speed: "..speed, Color3.fromRGB(80, 160, 255), function() end)
+
+makeButton("⬆️ Increase Speed", Color3.fromRGB(120, 255, 120), function()
+	local h = getHumanoid(); if not h then return end
+	speed = math.clamp(speed + 50, 16, 1000)
+	h.WalkSpeed = speed
+	speedLabel.Text = "⚡ Speed: "..speed
+end)
+
+makeButton("⬇️ Decrease Speed", Color3.fromRGB(255, 150, 120), function()
+	local h = getHumanoid(); if not h then return end
+	speed = math.clamp(speed - 50, 16, 1000)
+	h.WalkSpeed = speed
+	speedLabel.Text = "⚡ Speed: "..speed
+end)
+
+makeButton("🧮 Set Custom Speed", Color3.fromRGB(255, 255, 120), function()
+	local h = getHumanoid(); if not h then return end
+	local inputBox = Instance.new("TextBox")
+	inputBox.Size = UDim2.new(1, -10, 0, 36)
+	inputBox.PlaceholderText = "Enter speed (1 - 1000)"
+	inputBox.Text = ""
+	inputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	inputBox.TextColor3 = Color3.new(1, 1, 1)
+	inputBox.Font = Enum.Font.GothamBold
+	inputBox.TextSize = 16
+	inputBox.Parent = scroll
+	Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0.3, 0)
+	inputBox.FocusLost:Connect(function(enter)
+		if enter then
+			local val = tonumber(inputBox.Text)
+			if val then
+				speed = math.clamp(val, 1, 1000)
+				h.WalkSpeed = speed
+				speedLabel.Text = "⚡ Speed: "..speed
+			end
+			inputBox:Destroy()
+		end
+	end)
+end)
+
+-- Noclip
+local noclip = false
+makeButton("🧱 Noclip / Clip", Color3.fromRGB(160, 100, 255), function()
+	noclip = not noclip
+	task.spawn(function()
+		while noclip do
+			task.wait(0.1)
+			if player.Character then
+				for _, p in pairs(player.Character:GetChildren()) do
+					if p:IsA("BasePart") then p.CanCollide = false end
+				end
+			end
+		end
+	end)
+end)
+
+-- Invisible / Visible
+makeButton("👻 Invisible", Color3.fromRGB(200, 200, 200), function()
+	local char = player.Character
+	if char then
+		for _, p in pairs(char:GetChildren()) do
+			if p:IsA("BasePart") or p:IsA("Decal") then p.Transparency = 1 end
+		end
+	end
+end)
+
+makeButton("🌟 Visible", Color3.fromRGB(255, 255, 150), function()
+	local char = player.Character
+	if char then
+		for _, p in pairs(char:GetChildren()) do
+			if p:IsA("BasePart") or p:IsA("Decal") then p.Transparency = 0 end
+		end
+	end
+end)
+
+-- Sit / Unsit
+makeButton("💺 Sit", Color3.fromRGB(255, 180, 120), function()
+	local h = getHumanoid(); if h then h.Sit = true end
+end)
+
+makeButton("🚶 Unsit", Color3.fromRGB(120, 255, 180), function()
+	local h = getHumanoid(); if h then h.Sit = false end
+end)
+
+-- Respawn
+makeButton("🔄 Respawn", Color3.fromRGB(255, 200, 150), function()
+	player:LoadCharacter()
+end)
+
+scroll.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y + 10)
